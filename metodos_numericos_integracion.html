@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integración Numérica · Trabajo Final de Métodos Numéricos</title>
+<style>
+:root{--navy:#0b2447;--blue:#1d4ed8;--teal:#0e7490;--red:#dc2626;--bg:#f1f5f9;--card:#fff;--line:#e2e8f0;--txt:#0f172a;--mut:#64748b}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5}
+header{background:linear-gradient(135deg,#0b2447,#19376d 60%,#1d4ed8);color:#fff;padding:28px 20px 22px}
+.wrap{max-width:1100px;margin:0 auto}
+header h1{margin:0 0 4px;font-size:1.7rem;letter-spacing:.3px}
+header p{margin:0;opacity:.85}
+details.team{margin-top:14px;background:rgba(255,255,255,.1);border-radius:10px;padding:8px 14px}
+details.team summary{cursor:pointer;font-weight:600}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:10px 0 4px}
+.team-grid input{width:100%;padding:8px 10px;border:none;border-radius:8px;background:rgba(255,255,255,.95)}
+main{max-width:1100px;margin:0 auto;padding:18px 14px 50px}
+.card{background:var(--card);border-radius:14px;box-shadow:0 1px 3px rgba(15,23,42,.08),0 6px 18px rgba(15,23,42,.05);padding:18px 20px;margin-bottom:16px}
+.card h2{margin:2px 0 8px;font-size:1.3rem;color:var(--navy)}
+.card h3{margin:0 0 10px;font-size:1.02rem;color:var(--navy)}
+.tag{display:inline-block;background:#dbeafe;color:var(--blue);font-weight:700;font-size:.75rem;padding:2px 10px;border-radius:99px;text-transform:uppercase;letter-spacing:.5px}
+.integral{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
+.intsym{position:relative;width:118px;height:170px;flex:none}
+.intsym .sym{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"Cambria Math","Times New Roman",serif;font-size:150px;font-weight:100;color:var(--navy);line-height:1;pointer-events:none}
+.intsym .lim{position:absolute;width:62px;padding:6px;text-align:center;font-size:.95rem}
+.intsym .lim.top{top:0;right:-4px}
+.intsym .lim.bot{bottom:0;left:-4px}
+.fxin{flex:1;min-width:180px;width:auto!important;font-size:1.25rem!important}
+.dx{font-family:"Cambria Math",Cambria,serif;font-style:italic;font-size:1.6rem;color:var(--navy)}
+details.kb{padding:12px 16px}
+details.kb summary{cursor:pointer;font-weight:700;color:var(--navy)}
+.kbgrp{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;align-items:center}
+.kbgrp>b{width:96px;font-size:.72rem;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+@media(max-width:600px){.kbgrp>b{width:100%}.intsym{width:104px}}
+.key{min-width:44px;padding:9px 11px;background:#f1f5f9;border:1px solid #cbd5e1;font-family:"Cambria Math",Cambria,"Segoe UI",serif;font-size:1.1rem;color:var(--navy)}
+.key:hover{background:#dbeafe}
+.key.acc{background:#dbeafe;border-color:#93c5fd;font-weight:700}
+.key.del{background:#fee2e2;border-color:#fecaca}
+.preview{background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:10px 14px;font-family:"Cambria Math",Cambria,"Times New Roman",serif;font-size:1.4rem;min-height:56px;overflow-x:auto;margin:6px 0 14px;white-space:nowrap}
+.br{font-size:1.5em;font-weight:200;line-height:1;vertical-align:-.12em;margin:0 2px}
+.sp{display:inline-block;width:.18em}
+.mrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
+select{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:1rem;background:#fff}
+.loadrow{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.warn{display:none;background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:10px 14px;border-radius:10px;margin:10px 0}
+td.lbl{text-align:left;font-family:"Cambria Math",Cambria,serif;font-size:1rem}
+label{display:block;font-size:.8rem;font-weight:600;color:var(--mut);margin-bottom:4px}
+input[type=text],input[type=number]{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:1rem;font-family:Consolas,"Courier New",monospace;background:#fff}
+input:focus{outline:2px solid #93c5fd;border-color:var(--blue)}
+.fx input{font-size:1.1rem}
+button{font:inherit;cursor:pointer;border:none;border-radius:10px}
+.btn{background:var(--blue);color:#fff;padding:10px 18px;font-weight:600}
+.btn:hover{background:#1e40af}
+.btn.sec{background:#e2e8f0;color:var(--navy)}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.presets span{font-size:.8rem;color:var(--mut);font-weight:600}
+.chip{background:#eff6ff;color:var(--blue);border:1px solid #bfdbfe;padding:4px 12px;border-radius:99px;font-size:.85rem;font-family:Consolas,monospace}
+.chip:hover{background:#dbeafe}
+.err{display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:10px 14px;border-radius:10px;margin-top:12px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}
+.tabs button{background:#fff;color:var(--navy);padding:9px 14px;font-weight:600;font-size:.9rem;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.tabs button.on{background:var(--navy);color:#fff}
+.panel{display:none}.panel.on{display:block}
+.stmt{color:#334155;margin:4px 0 12px}
+.formula{background:#f8fafc;border-left:4px solid var(--blue);padding:12px 16px;border-radius:8px;font-family:"Cambria Math",Cambria,"Times New Roman",serif;font-size:1.15rem;overflow-x:auto}
+.formula br{display:block;margin-bottom:8px;content:""}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;font-size:.95em}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 4px}
+.frac>span:last-child{padding:0 4px}
+.ctl{display:inline-block;margin-top:12px;max-width:260px}
+.note{margin:10px 0 0;color:var(--mut);font-size:.9rem}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(15,23,42,.08);border-top:3px solid var(--teal)}
+.kpi.main{border-top-color:var(--blue);background:#eff6ff}
+.kpi small{display:block;color:var(--mut);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px}
+.kpi b{font-family:Consolas,monospace;font-size:1.08rem;word-break:break-all}
+canvas.chart{width:100%;height:360px;display:block;border-radius:10px;background:#fff}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:8px;font-size:.85rem;color:#475569}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:6px}
+.tablewrap{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th{position:sticky;top:0;background:var(--navy);color:#fff;padding:8px 10px;text-align:right;font-weight:600}
+th:first-child,td:first-child{text-align:center}
+td{padding:6px 10px;border-top:1px solid var(--line);text-align:right;font-family:Consolas,monospace}
+tr:nth-child(even) td{background:#f8fafc}
+tr.sum td{background:#dbeafe!important;font-weight:700}
+.subst{margin-top:12px;font-family:Consolas,monospace;background:#0b1730;color:#e2e8f0;padding:12px 16px;border-radius:10px;overflow-x:auto;font-size:.9rem;white-space:pre}
+.best{background:#dcfce7!important}
+footer{text-align:center;color:var(--mut);font-size:.8rem;padding-bottom:30px}
+@media print{.inputs button,.presets,.tabs,.ctl{display:none}body{background:#fff}.panel{display:block!important;page-break-after:always}}
+</style>
+</head>
+<body>
+<header>
+ <div class="wrap">
+  <h1>Trabajo Final de Métodos Numéricos</h1>
+  <p>Integración numérica · Trapezoidal · Boole · Simpson 3/8 · Simpson 1/3 · Simpson compuesto</p>
+  <details class="team" open><summary>Integrantes del grupo</summary>
+   <div class="team-grid" id="team"></div>
+  </details>
+ </div>
+</header>
+
+<main>
+ <div class="card">
+  <span class="tag">Datos de entrada</span>
+  <div class="integral">
+   <div class="intsym"><input type="text" id="ib" class="lim top" value="2" data-kbd title="Límite superior b"><span class="sym">∫</span><input type="text" id="ia" class="lim bot" value="0" data-kbd title="Límite inferior a"></div>
+   <input type="text" id="fx" class="fxin" value="exp(-x^2)" data-kbd spellcheck="false" autocomplete="off" title="f(x)">
+   <span class="dx">dx</span>
+   <button class="btn" id="go">Calcular</button>
+  </div>
+  <div class="presets" id="presets"><span>Ejemplos:</span></div>
+  <p class="note">Usa <b>x</b>, <b>+ − * / ^</b>, paréntesis y funciones: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, exp, ln (natural), log (base 10), sqrt, abs, cbrt. Constantes: pi, e. Los límites aceptan expresiones como <b>pi/2</b>.</p>
+  <div class="err" id="err"></div>
+ </div>
+
+ <details class="card kb" id="kbdbox"><summary>⌨ Teclado matemático (escribe fórmulas, f(x) y límites)</summary><div id="kbdgrid"></div><p class="note">El teclado escribe en el campo que tengas seleccionado (f(x), límites o tu fórmula).</p></details>
+ <nav class="tabs" id="tabs"></nav>
+ <div id="panels"></div>
+</main>
+<footer>Valor de referencia calculado con cuadratura de Gauss–Legendre compuesta (5 puntos × 200 paneles).</footer>
+
+<script>
+/* ============ Utilidades ============ */
+const $ = s => document.querySelector(s);
+const sub = n => `x<sub>${n}</sub>`;
+const frac = (n, d) => `<span class="frac"><span>${n}</span><span>${d}</span></span>`;
+
+function fmt(v, d = 8) {
+  if (!isFinite(v)) return '—';
+  if (v !== 0 && (Math.abs(v) < 1e-9 || Math.abs(v) >= 1e9)) return v.toExponential(6);
+  return v.toFixed(d);
+}
+const fmtErr = v => (v === 0 ? '0' : v.toExponential(3));
+
+/* ============ Analizador de funciones (seguro, sin eval) ============ */
+const FUN = {sin:Math.sin,cos:Math.cos,tan:Math.tan,asin:Math.asin,acos:Math.acos,atan:Math.atan,
+  sinh:Math.sinh,cosh:Math.cosh,tanh:Math.tanh,exp:Math.exp,ln:Math.log,log:Math.log10,log10:Math.log10,
+  sqrt:Math.sqrt,abs:Math.abs,cbrt:Math.cbrt};
+const CONST = {pi:Math.PI, e:Math.E};
+
+function compile(src) {
+  const s = src.toLowerCase().replace(/π/g, 'pi').replace(/,/g, '.').replace(/[−–]/g, '-').replace(/[×·]/g, '*').replace(/÷/g, '/').replace(/√/g, 'sqrt').replace(/²/g, '^2').replace(/³/g, '^3').replace(/[\[{]/g, '(').replace(/[\]}]/g, ')');
+  const re = /\s*(\d+\.?\d*|\.\d+|log10|[a-z]+|\*\*|[-+*/^()])/y;
+  const toks = []; let pos = 0;
+  while (pos < s.length) {
+    re.lastIndex = pos;
+    const m = re.exec(s);
+    if (!m) { if (/^\s*$/.test(s.slice(pos))) break; throw new Error('Carácter no válido cerca de "' + s.slice(pos, pos + 6).trim() + '"'); }
+    toks.push(m[1] === '**' ? '^' : m[1]); pos = re.lastIndex;
+  }
+  if (!toks.length) throw new Error('Escribe una función f(x)');
+  let i = 0;
+  const peek = () => toks[i], next = () => toks[i++];
+  const isNum = t => t && /^[\d.]/.test(t), isId = t => t && /^[a-z]/.test(t);
+  function expr() {
+    let l = term();
+    while (peek() === '+' || peek() === '-') {
+      const o = next(), r = term(), L = l;
+      l = o === '+' ? x => L(x) + r(x) : x => L(x) - r(x);
+    }
+    return l;
+  }
+  function term() {
+    let l = unary();
+    for (;;) {
+      const p = peek(); let r; const L = l;
+      if (p === '*' || p === '/') { next(); r = unary(); l = p === '*' ? x => L(x) * r(x) : x => L(x) / r(x); }
+      else if (isNum(p) || isId(p) || p === '(') { r = power(); l = x => L(x) * r(x); }
+      else break;
+    }
+    return l;
+  }
+  function unary() {
+    if (peek() === '-') { next(); const u = unary(); return x => -u(x); }
+    if (peek() === '+') { next(); return unary(); }
+    return power();
+  }
+  function power() {
+    const b = primary();
+    if (peek() === '^') { next(); const e = unary(); return x => Math.pow(b(x), e(x)); }
+    return b;
+  }
+  function primary() {
+    const t = next();
+    if (t === undefined) throw new Error('Expresión incompleta');
+    if (isNum(t)) { const v = parseFloat(t); return () => v; }
+    if (t === '(') { const e = expr(); if (next() !== ')') throw new Error('Falta cerrar un paréntesis'); return e; }
+    if (isId(t)) {
+      if (t === 'x') return x => x;
+      if (t in CONST) { const v = CONST[t]; return () => v; }
+      if (t in FUN) {
+        if (next() !== '(') throw new Error('Falta "(" después de ' + t);
+        const e = expr(); if (next() !== ')') throw new Error('Falta cerrar el paréntesis de ' + t);
+        const fn = FUN[t]; return x => fn(e(x));
+      }
+      throw new Error('Identificador desconocido: "' + t + '"');
+    }
+    throw new Error('Símbolo inesperado: "' + t + '"');
+  }
+  const f = expr();
+  if (i < toks.length) throw new Error('Símbolos sobrantes: "' + toks.slice(i).join('') + '"');
+  return f;
+}
+
+/* ============ Valor de referencia (Gauss–Legendre compuesto) ============ */
+function reference(f, a, b) {
+  const X = [0, 0.5384693101056831, -0.5384693101056831, 0.906179845938664, -0.906179845938664];
+  const W = [0.5688888888888889, 0.4786286704993665, 0.4786286704993665, 0.2369268850561891, 0.2369268850561891];
+  const P = 200, h = (b - a) / P; let s = 0;
+  for (let p = 0; p < P; p++) {
+    const c = a + (p + 0.5) * h, r = h / 2;
+    for (let k = 0; k < 5; k++) s += W[k] * f(c + r * X[k]);
+  }
+  return s * h / 2;
+}
+
+/* ============ Definición de métodos ============ */
+const METHODS = [
+ { id:'trap', num:1, tab:'1 · Trapezoidal', name:'Método Trapezoidal', fixed:null, even:false, off:0, k:[1,2], panel:1, n0:8,
+   stmt:'Desarrollar un programa que calcule integrales definidas por el método TRAPEZOIDAL para cualquier función ∫ₐᵇ f(x)dx.',
+   formula:`I = ${frac('Δ','2')} [ f(x₀) + 2f(x₁) + 2f(x₂) + 2f(x₃) + … + 2f(x<sub>n−1</sub>) + f(x<sub>n</sub>) ]`,
+   delta:`Δ = ${frac('b − a','n')}`,
+   coefs:n => Array.from({length:n+1}, (_, i) => (i === 0 || i === n) ? 1 : 2),
+   desc:'Aproxima f con segmentos de recta (trapecios).' },
+ { id:'boole', num:2, tab:'2 · Boole', name:'Método de Jorge Boole', fixed:4, even:false, off:1, k:[2,45], panel:4,
+   stmt:'Desarrollar un programa que calcule una integral definida por el método de JORGE BOOLE para cualquier función ∫ₐᵇ f(x)dx.',
+   formula:`I = ${frac('2Δ','45')} [ 7f(x₁) + 32f(x₂) + 12f(x₃) + 32f(x₄) + 7f(x₅) ]`,
+   delta:`Δ = ${frac('b − a','4')}`, coefs:() => [7,32,12,32,7],
+   desc:'Polinomio de grado 4 que pasa por 5 nodos.' },
+ { id:'s38', num:3, tab:'3 · Simpson 3/8', name:'Método de Simpson 3/8 (Newton–Cotes)', fixed:3, even:false, off:1, k:[3,8], panel:3,
+   stmt:'Desarrollar un programa que calcule una integral definida por el método de T. SIMPSON 3/8 – NEWTON–COTES para cualquier función ∫ₐᵇ f(x)dx.',
+   formula:`I = ${frac('3Δ','8')} [ f(x₁) + 3f(x₂) + 3f(x₃) + f(x₄) ]`,
+   delta:`Δ = ${frac('b − a','3')}`, coefs:() => [1,3,3,1],
+   desc:'Polinomio cúbico que pasa por 4 nodos.' },
+ { id:'s13', num:4, tab:'4 · Simpson 1/3', name:'Método de Simpson 1/3 (Newton–Cotes)', fixed:2, even:false, off:1, k:[1,3], panel:2,
+   stmt:'Desarrollar un programa que calcule una integral definida por el método de T. SIMPSON 1/3 – NEWTON–COTES para cualquier función.',
+   formula:`I = ${frac('Δ','3')} [ f(x₁) + 4f(x₂) + f(x₃) ]`,
+   delta:`Δ = ${frac('b − a','2')}`, coefs:() => [1,4,1],
+   desc:'Parábola que pasa por 3 nodos.' },
+ { id:'simp', num:5, tab:'5 · Simpson (n pares)', name:'Método Simpson (n particiones pares)', fixed:null, even:true, off:0, k:[1,3], panel:2, n0:8,
+   stmt:'Desarrollar un programa que calcule una integral definida por el método SIMPSON ABIERTO. Para n particiones pares (n debe ser un número par), para cualquier función f(x).',
+   formula:`I = ${frac('Δ','3')} [ f(x₀) + 4f(x₁) + 2f(x₂) + 4f(x₃) + 2f(x₄) + … + 4f(x<sub>n−1</sub>) + f(x<sub>n</sub>) ]`,
+   delta:`Δ = ${frac('b − a','n')}`,
+   coefs:n => Array.from({length:n+1}, (_, i) => (i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2)),
+   desc:'Una parábola por cada par de subintervalos. Nodos x₀ … xₙ (n + 1 nodos).' }
+];
+
+/* ============ Cálculo ============ */
+function compute(m, n, f, a, b) {
+  const h = (b - a) / n, cs = m.coefs(n), xs = [], ys = []; let S = 0;
+  for (let i = 0; i <= n; i++) {
+    const x = a + i * h, y = f(x);
+    if (!isFinite(y)) throw new Error(`f(x) no está definida (o no es finita) en x = ${fmt(x, 6)}`);
+    xs.push(x); ys.push(y); S += cs[i] * y;
+  }
+  return { n, h, xs, ys, cs, S, I: m.k[0] / m.k[1] * h * S };
+}
+function lagr(X, Y, x) {
+  let s = 0;
+  for (let i = 0; i < X.length; i++) {
+    let t = Y[i];
+    for (let j = 0; j < X.length; j++) if (j !== i) t *= (x - X[j]) / (X[i] - X[j]);
+    s += t;
+  }
+  return s;
+}
+function shapesFor(m, r) {
+  const out = [], P = m.panel;
+  for (let p = 0; p + P <= r.n; p += P) {
+    const X = r.xs.slice(p, p + P + 1), Y = r.ys.slice(p, p + P + 1);
+    if (P === 1) { out.push(X.map((x, i) => ({ x, y: Y[i] }))); continue; }
+    const pts = [], N = 60;
+    for (let j = 0; j <= N; j++) { const x = X[0] + (X[P] - X[0]) * j / N; pts.push({ x, y: lagr(X, Y, x) }); }
+    out.push(pts);
+  }
+  return out;
+}
+
+/* ============ Dibujo ============ */
+function setupCanvas(c) {
+  const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+  c.width = w * dpr; c.height = h * dpr;
+  const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+  return { ctx, w, h };
+}
+function niceTicks(lo, hi, cnt = 6) {
+  const raw = (hi - lo) / cnt, mag = Math.pow(10, Math.floor(Math.log10(raw))), r = raw / mag;
+  const step = (r < 1.5 ? 1 : r < 3 ? 2 : r < 7 ? 5 : 10) * mag, t = [];
+  for (let v = Math.ceil(lo / step - 1e-9) * step; v <= hi + step * 1e-9; v += step) t.push(Math.abs(v) < step * 1e-9 ? 0 : v);
+  return t;
+}
+const tk = v => String(parseFloat(v.toPrecision(4)));
+
+function drawFunctionChart(canvas, f, a, b, shapes, nodes) {
+  const { ctx, w, h } = setupCanvas(canvas);
+  const L = 56, R = 16, T = 14, B = 34;
+  const N = 500, curve = [];
+  for (let i = 0; i <= N; i++) { const x = a + (b - a) * i / N, y = f(x); if (isFinite(y)) curve.push({ x, y }); }
+  let ymin = 0, ymax = 0;
+  curve.forEach(p => { ymin = Math.min(ymin, p.y); ymax = Math.max(ymax, p.y); });
+  shapes.forEach(s => s.forEach(p => { ymin = Math.min(ymin, p.y); ymax = Math.max(ymax, p.y); }));
+  if (ymax === ymin) { ymax += 1; ymin -= 1; }
+  const pad = (ymax - ymin) * 0.08; ymin -= ymin < 0 ? pad : 0; ymax += pad;
+  const xpad = (b - a) * 0.03, x0 = a - xpad, x1 = b + xpad;
+  const X = x => L + (x - x0) / (x1 - x0) * (w - L - R), Y = y => T + (ymax - y) / (ymax - ymin) * (h - T - B);
+  ctx.font = '12px Segoe UI, Arial'; ctx.fillStyle = '#64748b'; ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+  niceTicks(ymin, ymax, 6).forEach(v => { const y = Y(v); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(w - R, y); ctx.stroke(); ctx.textAlign = 'right'; ctx.fillText(tk(v), L - 6, y + 4); });
+  niceTicks(x0, x1, 8).forEach(v => { const x = X(v); ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, h - B); ctx.stroke(); ctx.textAlign = 'center'; ctx.fillText(tk(v), x, h - B + 16); });
+  ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(L, Y(0)); ctx.lineTo(w - R, Y(0)); ctx.stroke();
+  if (x0 < 0 && x1 > 0) { ctx.beginPath(); ctx.moveTo(X(0), T); ctx.lineTo(X(0), h - B); ctx.stroke(); }
+  shapes.forEach(s => {
+    ctx.beginPath(); ctx.moveTo(X(s[0].x), Y(0));
+    s.forEach(p => ctx.lineTo(X(p.x), Y(p.y)));
+    ctx.lineTo(X(s[s.length - 1].x), Y(0)); ctx.closePath();
+    ctx.fillStyle = 'rgba(14,116,144,.22)'; ctx.fill();
+    ctx.strokeStyle = '#0e7490'; ctx.lineWidth = 1.6; ctx.stroke();
+  });
+  ctx.beginPath(); curve.forEach((p, i) => i ? ctx.lineTo(X(p.x), Y(p.y)) : ctx.moveTo(X(p.x), Y(p.y)));
+  ctx.strokeStyle = '#0b2447'; ctx.lineWidth = 2.6; ctx.stroke();
+  nodes.forEach(p => { ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 4, 0, 7); ctx.fillStyle = '#dc2626'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke(); });
+  ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.fillText('x', w - R - 6, Y(0) - 6);
+}
+
+function drawLines(canvas, series, xlabels, title, ylabel) {
+  const { ctx, w, h } = setupCanvas(canvas);
+  const L = 62, R = 16, T = 34, B = 42;
+  let lo = Infinity, hi = -Infinity;
+  series.forEach(s => s.v.forEach(v => { lo = Math.min(lo, v); hi = Math.max(hi, v); }));
+  lo = Math.floor(lo) - 0.3; hi = Math.ceil(hi) + 0.3;
+  const X = i => L + i / (xlabels.length - 1) * (w - L - R), Y = v => T + (hi - v) / (hi - lo) * (h - T - B);
+  ctx.font = '12px Segoe UI, Arial'; ctx.fillStyle = '#0b2447'; ctx.textAlign = 'left'; ctx.font = 'bold 13px Segoe UI, Arial'; ctx.fillText(title, L, 16);
+  ctx.font = '12px Segoe UI, Arial'; ctx.fillStyle = '#64748b'; ctx.strokeStyle = '#e2e8f0';
+  for (let v = Math.ceil(lo); v <= hi; v++) { const y = Y(v); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(w - R, y); ctx.stroke(); ctx.textAlign = 'right'; ctx.fillText('1e' + v, L - 6, y + 4); }
+  xlabels.forEach((t, i) => { ctx.textAlign = 'center'; ctx.fillText(t, X(i), h - B + 16); });
+  ctx.fillText('n (subintervalos)', (L + w - R) / 2, h - 6);
+  series.forEach((s, k) => {
+    ctx.beginPath(); s.v.forEach((v, i) => i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)));
+    ctx.strokeStyle = s.c; ctx.lineWidth = 2.4; ctx.stroke();
+    s.v.forEach((v, i) => { ctx.beginPath(); ctx.arc(X(i), Y(v), 3.5, 0, 7); ctx.fillStyle = s.c; ctx.fill(); });
+    ctx.fillStyle = s.c; ctx.textAlign = 'left'; ctx.fillRect(w - R - 190 + k * 100, 8, 12, 12); ctx.fillStyle = '#334155'; ctx.fillText(s.n, w - R - 174 + k * 100, 18);
+  });
+}
+
+function drawBars(canvas, labels, vals, colors) {
+  const { ctx, w, h } = setupCanvas(canvas);
+  const L = 50, R = 16, T = 30, B = 52, maxV = 16;
+  const Y = v => T + (maxV - v) / maxV * (h - T - B);
+  ctx.font = 'bold 13px Segoe UI, Arial'; ctx.fillStyle = '#0b2447'; ctx.textAlign = 'left';
+  ctx.fillText('Dígitos correctos ≈ −log₁₀(error absoluto)  ·  más alto = mejor', L, 16);
+  ctx.font = '12px Segoe UI, Arial'; ctx.strokeStyle = '#e2e8f0'; ctx.fillStyle = '#64748b';
+  for (let v = 0; v <= maxV; v += 2) { const y = Y(v); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(w - R, y); ctx.stroke(); ctx.textAlign = 'right'; ctx.fillText(v, L - 6, y + 4); }
+  const bw = (w - L - R) / vals.length;
+  vals.forEach((v, i) => {
+    const val = Math.max(0, Math.min(maxV, v)), x = L + i * bw + bw * 0.2, ww = bw * 0.6;
+    ctx.fillStyle = colors[i]; ctx.fillRect(x, Y(val), ww, Y(0) - Y(val));
+    ctx.fillStyle = '#0f172a'; ctx.textAlign = 'center'; ctx.fillText(v >= maxV ? '≥16' : v.toFixed(1), x + ww / 2, Y(val) - 5);
+    ctx.fillStyle = '#475569'; ctx.fillText(labels[i], x + ww / 2, h - B + 16);
+  });
+}
+
+/* ============ Calculadora de fórmulas + teclado ============ */
+const SUBMAP = {'₀':'0','₁':'1','₂':'2','₃':'3','₄':'4','₅':'5','₆':'6','₇':'7','₈':'8','₉':'9','ₙ':'n','₋':'-'};
+const MFUN = {sin:Math.sin,cos:Math.cos,tan:Math.tan,asin:Math.asin,acos:Math.acos,atan:Math.atan,sinh:Math.sinh,cosh:Math.cosh,tanh:Math.tanh,exp:Math.exp,ln:Math.log,log:Math.log10,sqrt:Math.sqrt,abs:Math.abs,cbrt:Math.cbrt};
+const BR_OPEN = '([{', BR_CLOSE = ')]}';
+
+function normFormula(src) {
+  let s = src.toLowerCase();
+  s = s.replace(/∫[^≈=]*?d\s*x/g, '');
+  const k = Math.max(s.lastIndexOf('≈'), s.lastIndexOf('='));
+  if (k >= 0) s = s.slice(k + 1);
+  s = s.replace(/[₀-₉ₙ₋]+/g, m => '_{' + [...m].map(c => SUBMAP[c]).join('') + '}');
+  return s.replace(/δ|delta/g, 'Δ').replace(/π/g, 'pi').replace(/√/g, 'sqrt').replace(/[−–]/g, '-')
+          .replace(/[×·]/g, '*').replace(/÷/g, '/').replace(/,/g, '.').replace(/\.{3}/g, '…');
+}
+function parseSub(t) {
+  const u = t.slice(1).replace(/^_/, '').replace(/^[({\[]/, '').replace(/[)}\]]$/, '').trim();
+  if (/^\d+$/.test(u)) return { k: +u, label: u };
+  const m = u.match(/^n(?:-(\d+))?$/);
+  if (m) return { last: true, m: m[1] ? +m[1] : 0, label: u.replace('-', '−') };
+  throw new Error('Subíndice no válido: x_' + u + ' (usa un número, n o n−1)');
+}
+function walk(n, cb) {
+  cb(n);
+  if (n.x) walk(n.x, cb); if (n.l) walk(n.l, cb); if (n.r) walk(n.r, cb); if (n.arg) walk(n.arg, cb);
+  if (n.terms) n.terms.forEach(t => walk(t.x, cb));
+}
+function parseFormula(src) {
+  const s = normFormula(src);
+  const re = /\s*(\.\.\.|…|\d+\.?\d*|\.\d+|x_[({\[][^)}\]]*[)}\]]|x_[0-9n]+|x[0-9]+|xn(?![a-z])|Δ|log10|[a-z]+|\*\*|[-+*/^()\[\]{}])/y;
+  const toks = []; let pos = 0;
+  while (pos < s.length) {
+    re.lastIndex = pos;
+    const m = re.exec(s);
+    if (!m) { if (/^\s*$/.test(s.slice(pos))) break; throw new Error('Carácter no válido cerca de "' + s.slice(pos, pos + 6).trim() + '"'); }
+    toks.push(m[1] === '**' ? '^' : m[1]); pos = re.lastIndex;
+  }
+  if (!toks.length) throw new Error('Escribe la fórmula');
+  let i = 0;
+  const peek = () => toks[i], next = () => toks[i++];
+  const isOpen = t => !!t && t.length === 1 && BR_OPEN.includes(t);
+  const isNum = t => !!t && /^(\d|\.\d)/.test(t);
+  const isNodeTok = t => !!t && /^x(_|\d|n)/.test(t);
+  const isId = t => !!t && /^[a-zΔ]/.test(t) && !isNodeTok(t);
+  const startsOperand = t => isNum(t) || isNodeTok(t) || isId(t) || isOpen(t);
+  function expr() {
+    const terms = []; let sg = 1;
+    if (peek() === '-') { next(); sg = -1; } else if (peek() === '+') next();
+    terms.push({ s: sg, x: term() });
+    while (peek() === '+' || peek() === '-') { const q = next() === '-' ? -1 : 1; terms.push({ s: q, x: term() }); }
+    return (terms.length === 1 && terms[0].s === 1) ? terms[0].x : { t: 'sum', terms };
+  }
+  function term() {
+    let l = unary();
+    for (;;) {
+      const p = peek();
+      if (p === '*') { next(); l = { t: 'bin', op: '*', l, r: unary() }; }
+      else if (p === '/') { next(); l = { t: 'bin', op: '/', l, r: unary() }; }
+      else if (startsOperand(p)) { l = { t: 'bin', op: '*', imp: true, l, r: power() }; }
+      else break;
+    }
+    return l;
+  }
+  function unary() {
+    if (peek() === '-') { next(); return { t: 'neg', x: unary() }; }
+    if (peek() === '+') { next(); return unary(); }
+    return power();
+  }
+  function power() {
+    const b = primary();
+    if (peek() === '^') { next(); return { t: 'bin', op: '^', l: b, r: unary() }; }
+    return b;
+  }
+  function primary() {
+    const t = next();
+    if (t === undefined) throw new Error('La fórmula está incompleta');
+    if (t === '…' || t === '...') return { t: 'dots' };
+    if (isNum(t)) return { t: 'num', v: parseFloat(t), raw: t };
+    if (isOpen(t)) {
+      const x = expr(), c = next();
+      if (!c || !BR_CLOSE.includes(c)) throw new Error('Falta cerrar el paréntesis o corchete "' + t + '"');
+      return { t: 'grp', x, o: t, c };
+    }
+    if (isNodeTok(t)) return { t: 'node', sub: parseSub(t) };
+    if (t === 'Δ') return { t: 'var', n: 'Δ' };
+    if (['n', 'a', 'b', 'pi', 'e'].includes(t)) return { t: 'var', n: t };
+    if (t === 'f' || t in MFUN) {
+      const o = next();
+      if (!isOpen(o)) throw new Error('Falta "(" después de ' + t);
+      const arg = expr(), c = next();
+      if (!c || !BR_CLOSE.includes(c)) throw new Error('Falta cerrar el paréntesis de ' + t);
+      return { t: 'call', fn: t, arg };
+    }
+    if (t === 'x') throw new Error('Escribe los puntos como x₀, x₁, x₂… (por ejemplo f(x1)); la x suelta no se usa aquí');
+    throw new Error('Símbolo desconocido: "' + t + '"');
+  }
+  const tree = expr();
+  if (i < toks.length) throw new Error('Sobran símbolos: "' + toks.slice(i).join('') + '"');
+  let min = Infinity;
+  walk(tree, n => { if (n.t === 'node' && !n.sub.last) min = Math.min(min, n.sub.k); });
+  return { tree, base: (isFinite(min) && min >= 1) ? 1 : 0 };
+}
+
+function renderNode(n) {
+  switch (n.t) {
+    case 'num': return n.raw;
+    case 'var': return { 'Δ': 'Δ', n: '<i>n</i>', a: '<i>a</i>', b: '<i>b</i>', pi: 'π', e: '<i>e</i>' }[n.n];
+    case 'node': return 'x<sub>' + n.sub.label + '</sub>';
+    case 'call': return (n.fn === 'f' ? '<i>f</i>' : n.fn === 'sqrt' ? '√' : n.fn) + '(' + renderNode(n.arg) + ')';
+    case 'neg': return '−' + renderNode(n.x);
+    case 'grp': return '<span class="br">' + n.o + '</span>' + renderNode(n.x) + '<span class="br">' + n.c + '</span>';
+    case 'dots': return '…';
+    case 'sum': return n.terms.map((t, k) => (k ? (t.s < 0 ? ' − ' : ' + ') : (t.s < 0 ? '−' : '')) + renderNode(t.x)).join('');
+    case 'bin': {
+      if (n.op === '/') { const un = x => x.t === 'grp' ? x.x : x; return frac(renderNode(un(n.l)), renderNode(un(n.r))); }
+      if (n.op === '^') return renderNode(n.l) + '<sup>' + renderNode(n.r) + '</sup>';
+      return renderNode(n.l) + (n.imp ? '<span class="sp"></span>' : ' · ') + renderNode(n.r);
+    }
+  }
+  return '';
+}
+
+function callF(v, c) {
+  const y = c.f(v);
+  if (!isFinite(y)) throw new Error('f(x) no está definida en x = ' + fmt(v, 6));
+  if (c.pts.length < 600) c.pts.push({ x: v, y });
+  return y;
+}
+function evalNode(n, c) {
+  switch (n.t) {
+    case 'num': return n.v;
+    case 'var':
+      if (n.n === 'Δ') { if (c.h === undefined) throw new Error('Δ no puede depender de sí misma'); return c.h; }
+      return { n: c.n, a: c.a, b: c.b, pi: Math.PI, e: Math.E }[n.n];
+    case 'node': {
+      if (c.h === undefined) throw new Error('Δ no puede usar puntos xᵢ');
+      const idx = n.sub.last ? c.base + c.n - n.sub.m : n.sub.k;
+      return c.a + (idx - c.base) * c.h;
+    }
+    case 'call': {
+      const v = evalNode(n.arg, c);
+      return n.fn === 'f' ? callF(v, c) : MFUN[n.fn](v);
+    }
+    case 'neg': return -evalNode(n.x, c);
+    case 'grp': return evalNode(n.x, c);
+    case 'bin': {
+      const l = evalNode(n.l, c), r = evalNode(n.r, c);
+      return n.op === '+' ? l + r : n.op === '-' ? l - r : n.op === '*' ? l * r : n.op === '/' ? l / r : Math.pow(l, r);
+    }
+    case 'sum': return evalSum(n, c);
+    case 'dots': throw new Error('Los puntos suspensivos "…" deben ir dentro de una suma, entre dos términos');
+  }
+}
+function evalSum(n, c) {
+  const T = n.terms, d = T.findIndex(t => t.x.t === 'dots'), log = []; let tot = 0;
+  const add = (label, v) => { log.push({ label, v }); tot += v; };
+  const plain = t => add(renderNode(t.x), t.s * evalNode(t.x, c));
+  if (d < 0) T.forEach(plain);
+  else {
+    if (d === 0 || d === T.length - 1) throw new Error('Los puntos suspensivos "…" deben ir entre dos términos');
+    const idxOf = sub => sub.last ? c.base + c.n - sub.m : sub.k;
+    const an = t => {
+      let x = t.x, coef = 1;
+      if (x.t === 'bin' && x.op === '*' && x.l.t === 'num') { coef = x.l.v; x = x.r; }
+      if (x.t === 'call' && x.fn === 'f') {
+        let a = x.arg; if (a.t === 'grp') a = a.x;
+        if (a.t === 'node') return { c: t.s * coef, i: idxOf(a.sub) };
+      }
+      return null;
+    };
+    const prior = T.slice(0, d), after = T.slice(d + 1);
+    const L = (prior.length >= 2 ? prior.slice(1) : prior).map(an);
+    const nx = an(after[0]);
+    if (L.some(v => !v) || !nx) throw new Error('No pude interpretar los puntos suspensivos. Úsalos así: 2f(x2) + 2f(x3) + … + f(xn)');
+    prior.forEach(plain);
+    const last = L[L.length - 1], c2 = last.c, c1 = L.length >= 2 ? L[L.length - 2].c : c2;
+    if (nx.i < last.i) throw new Error('Los subíndices antes y después de "…" no están en orden');
+    for (let i = last.i + 1; i < nx.i; i++) {
+      const coef = ((i - last.i) % 2 === 1) ? c1 : c2;
+      add(coef + '·<i>f</i>(x<sub>' + i + '</sub>)', coef * callF(c.a + (i - c.base) * c.h, c));
+    }
+    after.forEach(plain);
+  }
+  c.logs.push({ log, tot });
+  return tot;
+}
+function calcFormula(dTxt, fTxt, n, sel, f, a, b) {
+  const pd = parseFormula(dTxt), pf = parseFormula(fTxt);
+  const h = evalNode(pd.tree, { a, b, n, f, pts: [], logs: [] });
+  if (!isFinite(h) || h === 0) throw new Error('Δ no es válida: revisa su fórmula');
+  const base = sel === 'auto' ? pf.base : +sel;
+  const c = { a, b, n, h, base, f, pts: [], logs: [] };
+  const I = evalNode(pf.tree, c);
+  if (!isFinite(I)) throw new Error('El resultado no es un número finito');
+  return { h, base, I, c };
+}
+
+const PRE = [
+  { t: '1 · Trapezoidal', d: '(b−a)/n', f: 'Δ/2 [f(x0)+2f(x1)+2f(x2)+2f(x3)+…+f(xn)]', n: 6 },
+  { t: '2 · Boole', d: '(b−a)/4', f: '2Δ/45 [7f(x1)+32f(x2)+12f(x3)+32f(x4)+7f(x5)]', n: 4 },
+  { t: '3 · Simpson 3/8', d: '(b−a)/3', f: '3Δ/8 [f(x1)+3f(x2)+3f(x3)+f(x4)]', n: 3 },
+  { t: '4 · Simpson 1/3', d: '(b−a)/2', f: 'Δ/3 [f(x1)+4f(x2)+f(x3)]', n: 2 },
+  { t: '5 · Simpson (n par)', d: '(b−a)/n', f: 'Δ/3 [f(x1)+4f(x2)+2f(x3)+4f(x4)+2f(x5)+…+f(xn)]', n: 8 }
+];
+const MINE_HTML = `<section class="panel" id="p-mine">
+  <div class="card"><span class="tag">Calculadora de fórmula</span><h2>Escribe la fórmula tal como te la dieron</h2>
+   <p class="stmt">Usa el teclado de arriba (⌨) o carga una fórmula del taller. Puedes usar <b>Δ</b>, <b>n</b>, <b>a</b>, <b>b</b>, <b>f(x)</b>, los puntos <b>x₀, x₁, x₂…</b>, <b>xₙ</b> (último punto) y los puntos suspensivos <b>…</b>. Para una fracción escribe <b>( )/( )</b>.</p>
+   <div class="loadrow" id="m-load"></div>
+   <div class="mrow">
+    <div><label for="m-n">n (subintervalos)</label><input type="number" id="m-n" value="6" min="1" step="1"></div>
+    <div><label for="m-base">Los subíndices empiezan en</label><select id="m-base"><option value="auto">Automático (según tu fórmula)</option><option value="0">x₀ = a</option><option value="1">x₁ = a</option></select></div>
+   </div>
+   <label for="m-d">Δ =</label><input type="text" id="m-d" data-kbd value="(b−a)/n" spellcheck="false" autocomplete="off">
+   <div class="preview" id="m-dp"></div>
+   <label for="m-f">I =</label><input type="text" id="m-f" data-kbd value="Δ/2 [f(x0)+2f(x1)+2f(x2)+2f(x3)+…+f(xn)]" spellcheck="false" autocomplete="off">
+   <div class="preview" id="m-fp"></div>
+   <div class="err" id="m-err"></div><div class="warn" id="m-warn"></div>
+  </div>
+  <div class="kpis" id="m-k"></div>
+  <div class="card"><h3>Gráfica: puntos evaluados</h3><canvas class="chart" id="c-mine"></canvas>
+   <div class="legend"><span><i style="background:#0b2447"></i>f(x)</span><span><i style="background:#dc2626;border-radius:50%"></i>Puntos xᵢ usados en tu fórmula</span></div></div>
+  <div class="card"><h3>Desglose de la suma</h3><div class="tablewrap" id="m-t"></div></div>
+ </section>
+ `;
+
+function renderMine(f, a, b, ref) {
+  const err = $('#m-err'), warn = $('#m-warn');
+  err.style.display = 'none'; warn.style.display = 'none';
+  const dTxt = $('#m-d').value, fTxt = $('#m-f').value;
+  let msg = null;
+  const prev = (id, pre, txt) => {
+    try { $(id).innerHTML = pre + renderNode(parseFormula(txt).tree); }
+    catch (e) { $(id).innerHTML = '<span style="color:#991b1b;font-size:.95rem;font-family:inherit">' + e.message + '</span>'; msg = msg || e.message; }
+  };
+  prev('#m-dp', 'Δ = ', dTxt); prev('#m-fp', 'I = ', fTxt);
+  const clear = () => { $('#m-k').innerHTML = ''; $('#m-t').innerHTML = ''; setupCanvas($('#c-mine')); };
+  const fail = m => { err.textContent = '⚠ ' + m; err.style.display = 'block'; clear(); };
+  if (msg) return fail(msg);
+  const n = parseInt($('#m-n').value, 10);
+  if (!(n >= 1 && n <= 5000)) return fail('n debe ser un entero entre 1 y 5000');
+  let R;
+  try { R = calcFormula(dTxt, fTxt, n, $('#m-base').value, f, a, b); } catch (e) { return fail(e.message); }
+  const e = Math.abs(R.I - ref), rel = ref !== 0 ? e / Math.abs(ref) * 100 : NaN;
+  const kpi = (s, v, c) => `<div class="kpi ${c || ''}"><small>${s}</small><b>${v}</b></div>`;
+  $('#m-k').innerHTML = kpi('Integral calculada I', fmt(R.I, 10), 'main') + kpi('Δ', fmt(R.h, 8)) + kpi('n', n) +
+    kpi('Subíndices desde', 'x<sub>' + R.base + '</sub> = a') + kpi('Valor de referencia', fmt(ref, 10)) +
+    kpi('Error absoluto', fmtErr(e)) + kpi('Error relativo (%)', isFinite(rel) ? fmtErr(rel) : '—');
+  const tol = Math.abs(b - a) * 1e-9;
+  if (R.c.pts.some(p => p.x > b + tol || p.x < a - tol))
+    { warn.textContent = '⚠ Algún xᵢ queda fuera de [a, b]. Revisa con qué subíndice empiezas (x₀ o x₁), Δ y n.'; warn.style.display = 'block'; }
+  drawFunctionChart($('#c-mine'), f, a, b, [], R.c.pts);
+  const big = R.c.logs.reduce((m, x) => x.log.length > (m ? m.log.length : 0) ? x : m, null);
+  if (big && big.log.length >= 2) {
+    const row = (k, x) => `<tr><td>${k}</td><td class="lbl">${x.label}</td><td>${fmt(x.v, 8)}</td></tr>`, rows = [], L = big.log;
+    if (L.length <= 40) L.forEach((x, k) => rows.push(row(k + 1, x)));
+    else { for (let k = 0; k < 12; k++) rows.push(row(k + 1, L[k])); rows.push('<tr><td colspan="3">⋮ (filas intermedias omitidas) ⋮</td></tr>'); for (let k = L.length - 5; k < L.length; k++) rows.push(row(k + 1, L[k])); }
+    rows.push(`<tr class="sum"><td>Σ</td><td></td><td>${fmt(big.tot, 8)}</td></tr>`);
+    $('#m-t').innerHTML = '<table><thead><tr><th>#</th><th>Término</th><th>Valor</th></tr></thead><tbody>' + rows.join('') + '</tbody></table>';
+  } else $('#m-t').innerHTML = '<p class="note" style="padding:10px">Tu fórmula no tiene una suma de varios términos para desglosar.</p>';
+}
+
+let kbdTarget = null;
+function kbdEl() { return (kbdTarget && document.body.contains(kbdTarget)) ? kbdTarget : (active === 'mine' ? $('#m-f') : $('#fx')); }
+function kbdInsert(text, back, toFormula) {
+  const el = toFormula ? $('#m-f') : kbdEl();
+  const s = el.selectionStart ?? el.value.length, e = el.selectionEnd ?? s;
+  el.value = el.value.slice(0, s) + text + el.value.slice(e);
+  const p = s + text.length + (back || 0);
+  el.focus(); el.setSelectionRange(p, p);
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function kbdEdit(kind) {
+  const el = kbdEl();
+  let s = el.selectionStart ?? el.value.length, e = el.selectionEnd ?? s;
+  if (kind === 'clear') { el.value = ''; s = e = 0; }
+  else if (kind === 'back') { if (s === e && s > 0) s--; el.value = el.value.slice(0, s) + el.value.slice(e); e = s; }
+  else if (kind === 'left') { s = e = Math.max(0, s - 1); }
+  else if (kind === 'right') { s = e = Math.min(el.value.length, e + 1); }
+  el.focus(); el.setSelectionRange(s, e);
+  if (kind === 'clear' || kind === 'back') el.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function buildKeypad() {
+  const G = [
+    ['Símbolos', [['Δ', 'Δ', 0, 0, 1], ['n', 'n'], ['a', 'a'], ['b', 'b'], ['π', 'π'], ['e', 'e'], ['∫', '∫', 0, 1, 1], ['∫ₐᵇ f(x)dx', '∫ₐᵇ f(x) dx ≈ ', 0, 1, 1]]],
+    ['Estructura', [['▢⁄▢', '()/()', -4, 0, 1], ['( )', '()', -1], ['[ ]', '[]', -1], ['f(x)', 'f()', -1, 0, 1], ['x₀', 'x₀'], ['x₁', 'x₁'], ['x₂', 'x₂'], ['x₃', 'x₃'], ['x₄', 'x₄'], ['x₅', 'x₅'], ['xₙ', 'xₙ'], ['xₙ₋₁', 'xₙ₋₁'], ['…', '…']]],
+    ['Operaciones', [['+', '+'], ['−', '−'], ['×', '×'], ['÷', '÷'], ['xʸ', '^'], ['=', '=']]],
+    ['Números', ['7', '8', '9', '4', '5', '6', '1', '2', '3', '0', '.'].map(d => [d, d])],
+    ['Funciones', [['sin', 'sin()', -1], ['cos', 'cos()', -1], ['tan', 'tan()', -1], ['eˣ', 'exp()', -1], ['ln', 'ln()', -1], ['log', 'log()', -1], ['√', '√()', -1], ['|x|', 'abs()', -1]]]
+  ];
+  const root = $('#kbdgrid');
+  G.forEach(([name, keys]) => {
+    const row = document.createElement('div'); row.className = 'kbgrp'; row.innerHTML = '<b>' + name + '</b>';
+    keys.forEach(([label, text, back, toF, acc]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'key' + (acc ? ' acc' : ''); b.textContent = label;
+      b.onmousedown = e => e.preventDefault();
+      b.onclick = () => kbdInsert(text, back || 0, !!toF);
+      row.appendChild(b);
+    });
+    if (name === 'Números') [['⌫', 'back'], ['◀', 'left'], ['▶', 'right'], ['C', 'clear']].forEach(([l, k]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'key del'; b.textContent = l;
+      b.onmousedown = e => e.preventDefault(); b.onclick = () => kbdEdit(k); row.appendChild(b);
+    });
+    root.appendChild(row);
+  });
+  const load = $('#m-load'); load.innerHTML = '<span style="font-size:.8rem;color:var(--mut);font-weight:600;align-self:center">Cargar del taller:</span>';
+  PRE.forEach(p => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = p.t;
+    b.onclick = () => { $('#m-d').value = p.d; $('#m-f').value = p.f; $('#m-n').value = p.n; $('#m-base').value = 'auto'; render(); };
+    load.appendChild(b);
+  });
+  document.addEventListener('focusin', e => { if (e.target.dataset && e.target.dataset.kbd !== undefined) kbdTarget = e.target; });
+}
+
+/* ============ Interfaz ============ */
+const COLORS = ['#1d4ed8', '#0e7490', '#7c3aed', '#ea580c', '#16a34a'];
+let active = 'trap';
+
+function panelHTML(m) {
+  const ctl = m.fixed
+    ? `<p class="note">Este método usa un número <b>fijo</b> de subintervalos: <b>n = ${m.fixed}</b>.</p>`
+    : `<div class="ctl"><label for="n-${m.id}">n — número de subintervalos ${m.even ? '(debe ser PAR)' : ''}</label><input type="number" id="n-${m.id}" value="${m.n0}" min="${m.even ? 2 : 1}" step="${m.even ? 2 : 1}"></div>`;
+  return `<section class="panel" id="p-${m.id}">
+   <div class="card"><span class="tag">Problema ${m.num}</span><h2>${m.name}</h2>
+    <p class="stmt">${m.stmt}</p>
+    <div class="formula">${m.formula}<br>${m.delta}</div>
+    <p class="note">${m.desc}</p>${ctl}</div>
+   <div class="kpis" id="k-${m.id}"></div>
+   <div class="card"><h3>Gráfica del método</h3><canvas class="chart" id="c-${m.id}"></canvas>
+    <div class="legend"><span><i style="background:#0b2447"></i>f(x)</span><span><i style="background:rgba(14,116,144,.35);border:1.5px solid #0e7490"></i>Área aproximada por el método</span><span><i style="background:#dc2626;border-radius:50%"></i>Nodos xᵢ</span></div></div>
+   <div class="card"><h3>Tabla de cálculo</h3><div class="tablewrap" id="t-${m.id}"></div><div class="subst" id="s-${m.id}"></div></div>
+  </section>`;
+}
+
+function init() {
+  $('#team').innerHTML = ['Cristóbal Villamil','Luis Cardenas','Jean Benavides','Daniel Gutierrez','José Echenique','Juan Camilo Ruiz'].map((n, i) => `<input type="text" value="${n}" aria-label="Integrante ${i + 1}">`).join('');
+  const tabs = $('#tabs');
+  METHODS.forEach(m => { const b = document.createElement('button'); b.textContent = m.tab; b.dataset.t = m.id; tabs.appendChild(b); });
+  const mb = document.createElement('button'); mb.textContent = '✍ Mi fórmula'; mb.dataset.t = 'mine'; tabs.appendChild(mb);
+  const cb = document.createElement('button'); cb.textContent = '📊 Comparación'; cb.dataset.t = 'cmp'; tabs.appendChild(cb);
+  $('#panels').innerHTML = METHODS.map(panelHTML).join('') + `
+   ${MINE_HTML}<section class="panel" id="p-cmp">
+    <div class="card"><span class="tag">Resumen</span><h2>Comparación de los 5 métodos</h2><p class="stmt">Resultados con la misma función y los mismos límites. El mejor (menor error) aparece resaltado.</p>
+     <div class="tablewrap"><table id="cmp-table"></table></div></div>
+    <div class="card"><h3>Precisión por método</h3><canvas class="chart" id="c-bars"></canvas></div>
+    <div class="card"><h3>Convergencia: Trapezoidal vs. Simpson al aumentar n</h3><canvas class="chart" id="c-conv"></canvas>
+     <p class="note">Simpson converge mucho más rápido (error ∝ h⁴) que el trapezoidal (error ∝ h²).</p></div>
+   </section>`;
+  const presets = [['exp(-x^2)',0,2],['sin(x)',0,'pi'],['x^4',0,2],['1/x',1,2],['sqrt(x)',0,4],['x*cos(x)',0,'pi/2'],['ln(x)',1,3]];
+  presets.forEach(p => { const b = document.createElement('button'); b.className = 'chip'; b.textContent = `${p[0]}  [${p[1]}, ${p[2]}]`;
+    b.onclick = () => { $('#fx').value = p[0]; $('#ia').value = p[1]; $('#ib').value = p[2]; render(); }; $('#presets').appendChild(b); });
+  tabs.addEventListener('click', e => { if (e.target.dataset.t) { active = e.target.dataset.t; if (active === 'mine') $('#kbdbox').open = true; render(); } });
+  buildKeypad();
+  $('#go').onclick = render;
+  document.addEventListener('input', e => { if (e.target.closest('.integral') || e.target.id.startsWith('n-') || e.target.id.startsWith('m-')) render(); });
+  window.addEventListener('resize', render);
+  render();
+}
+
+function showError(msg) { const e = $('#err'); e.textContent = '⚠ ' + msg; e.style.display = 'block'; }
+
+function render() {
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === active));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'p-' + active));
+  $('#err').style.display = 'none';
+  let f, a, b, ref;
+  try {
+    f = compile($('#fx').value);
+    a = compile($('#ia').value)(0); b = compile($('#ib').value)(0);
+    if (!isFinite(a) || !isFinite(b)) throw new Error('Los límites a y b deben ser números válidos');
+    if (a >= b) throw new Error('Se requiere a < b');
+    f(a); ref = reference(f, a, b);
+    if (!isFinite(ref)) throw new Error('La integral no es finita en [a, b] (¿singularidad?)');
+  } catch (e) { showError(e.message); return; }
+
+  if (active === 'mine') { renderMine(f, a, b, ref); return; }
+  const results = [];
+  for (const m of METHODS) {
+    let n = m.fixed || parseInt($('#n-' + m.id).value, 10);
+    if (!m.fixed) {
+      if (!(n >= 1) || n > 200000) { showError(`Método ${m.num}: n debe ser un entero entre 1 y 200000`); return; }
+      if (m.even && n % 2) { showError(`Método ${m.num}: n debe ser un número PAR (prueba con ${n + 1})`); return; }
+    }
+    try { results.push({ m, r: compute(m, n, f, a, b) }); } catch (e) { showError(e.message); return; }
+  }
+  results.forEach(({ m, r }) => {
+    const err = Math.abs(r.I - ref), rel = ref !== 0 ? err / Math.abs(ref) * 100 : NaN;
+    $('#k-' + m.id).innerHTML = `
+      <div class="kpi main"><small>Integral aproximada I</small><b>${fmt(r.I, 10)}</b></div>
+      <div class="kpi"><small>Δ = (b − a)/n</small><b>${fmt(r.h, 8)}</b></div>
+      <div class="kpi"><small>n subintervalos</small><b>${r.n}</b></div>
+      <div class="kpi"><small>Valor de referencia</small><b>${fmt(ref, 10)}</b></div>
+      <div class="kpi"><small>Error absoluto</small><b>${fmtErr(err)}</b></div>
+      <div class="kpi"><small>Error relativo (%)</small><b>${isFinite(rel) ? fmtErr(rel) : '—'}</b></div>`;
+    $('#t-' + m.id).innerHTML = tableHTML(m, r);
+    const kk = `${m.k[0]}/${m.k[1]}`;
+    $('#s-' + m.id).textContent =
+`Δ = (b − a) / n = (${fmt(b, 6)} − ${fmt(a, 6)}) / ${r.n} = ${fmt(r.h, 10)}
+Σ cᵢ·f(xᵢ) = ${fmt(r.S, 10)}
+I = (${kk})·Δ·Σ = (${kk}) × ${fmt(r.h, 8)} × ${fmt(r.S, 8)}
+I ≈ ${fmt(r.I, 10)}`;
+  });
+
+  if (active === 'cmp') drawComparison(results, f, a, b, ref);
+  else {
+    const { m, r } = results.find(x => x.m.id === active);
+    const nodes = r.xs.map((x, i) => ({ x, y: r.ys[i] }));
+    drawFunctionChart($('#c-' + m.id), f, a, b, shapesFor(m, r), r.n > 300 ? [] : nodes);
+  }
+  window._res = { results, ref };
+}
+
+function tableHTML(m, r) {
+  const rows = [], n = r.n;
+  const row = i => `<tr><td>${sub(i + m.off)}</td><td>${fmt(r.xs[i], 8)}</td><td>${fmt(r.ys[i], 8)}</td><td>${r.cs[i]}</td><td>${fmt(r.cs[i] * r.ys[i], 8)}</td></tr>`;
+  if (n <= 40) for (let i = 0; i <= n; i++) rows.push(row(i));
+  else { for (let i = 0; i < 12; i++) rows.push(row(i)); rows.push('<tr><td colspan="5">⋮ (filas intermedias omitidas) ⋮</td></tr>'); for (let i = n - 5; i <= n; i++) rows.push(row(i)); }
+  rows.push(`<tr class="sum"><td>Σ</td><td></td><td></td><td></td><td>${fmt(r.S, 8)}</td></tr>`);
+  return `<table><thead><tr><th>i</th><th>xᵢ</th><th>f(xᵢ)</th><th>Coef. cᵢ</th><th>cᵢ · f(xᵢ)</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+}
+
+function drawComparison(results, f, a, b, ref) {
+  const errs = results.map(({ r }) => Math.abs(r.I - ref));
+  const minE = Math.min(...errs);
+  $('#cmp-table').innerHTML = `<thead><tr><th>Método</th><th>n</th><th>Δ</th><th>I aproximada</th><th>Error absoluto</th><th>Error rel. (%)</th></tr></thead><tbody>` +
+    results.map(({ m, r }, i) => `<tr class="${errs[i] === minE ? 'best' : ''}"><td style="text-align:left;font-family:inherit">${m.tab}</td><td>${r.n}</td><td>${fmt(r.h, 6)}</td><td>${fmt(r.I, 10)}</td><td>${fmtErr(errs[i])}</td><td>${ref ? fmtErr(errs[i] / Math.abs(ref) * 100) : '—'}</td></tr>`).join('') +
+    `<tr class="sum"><td style="font-family:inherit">Valor de referencia</td><td></td><td></td><td>${fmt(ref, 10)}</td><td></td><td></td></tr></tbody>`;
+  drawBars($('#c-bars'), results.map(x => x.m.tab.split(' · ')[1]), errs.map(e => e === 0 ? 16 : -Math.log10(e)), COLORS);
+  const ns = [2, 4, 8, 16, 32, 64, 128, 256], tr = [], sp = [];
+  const mt = METHODS[0], ms = METHODS[4];
+  ns.forEach(n => {
+    tr.push(Math.log10(Math.max(Math.abs(compute(mt, n, f, a, b).I - ref), 1e-16)));
+    sp.push(Math.log10(Math.max(Math.abs(compute(ms, n, f, a, b).I - ref), 1e-16)));
+  });
+  drawLines($('#c-conv'), [{ n: 'Trapezoidal', v: tr, c: '#1d4ed8' }, { n: 'Simpson', v: sp, c: '#ea580c' }], ns.map(String), 'Error absoluto (escala logarítmica)');
+}
+
+init();
+</script>
+</body>
+</html>
